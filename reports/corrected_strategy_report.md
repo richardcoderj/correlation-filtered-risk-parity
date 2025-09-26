@@ -24,6 +24,8 @@
 - **Volatility**: 11.3%
 - **Sharpe Ratio**: 0.832
 - **Maximum Drawdown**: -14.0%
+- **Drawdown Duration (P95)**: 15 months
+- **Max Drawdown Duration**: 24 months
 - **Win Rate**: 59.5%
 - **Total Months**: 237
 
@@ -118,5 +120,5 @@ The strategy shows robust performance across different market conditions:
 - **Data Sources**: EODHD API with yfinance backup
 
 ---
-*Report generated on 2025-09-26 23:23:03*
+*Report generated on 2025-09-26 23:38:42*
 *Analysis includes 237 months of data*

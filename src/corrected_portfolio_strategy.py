@@ -180,27 +180,70 @@ class CorrectedPortfolioStrategy:
         
         return portfolio_returns, cumulative_returns
     
+    def calculate_drawdown_duration(self, portfolio_returns: pd.Series) -> Dict:
+        """Calculate drawdown duration metrics"""
+        cumulative = (1 + portfolio_returns).cumprod()
+        rolling_max = cumulative.expanding().max()
+        drawdown = (cumulative - rolling_max) / rolling_max
+
+        # Identify drawdown periods
+        underwater = drawdown < 0
+
+        # Calculate durations
+        durations = []
+        current_duration = 0
+
+        for is_underwater in underwater:
+            if is_underwater:
+                current_duration += 1
+            else:
+                if current_duration > 0:
+                    durations.append(current_duration)
+                    current_duration = 0
+
+        # Handle case where we end in a drawdown
+        if current_duration > 0:
+            durations.append(current_duration)
+
+        if durations:
+            return {
+                'max_duration': max(durations),
+                'avg_duration': np.mean(durations),
+                'p95_duration': np.percentile(durations, 95),
+                'current_duration': current_duration
+            }
+        else:
+            return {
+                'max_duration': 0,
+                'avg_duration': 0,
+                'p95_duration': 0,
+                'current_duration': 0
+            }
+
     def calculate_performance_metrics(self, portfolio_returns: pd.Series) -> Dict:
         """Calculate comprehensive performance metrics"""
         # Basic metrics
         total_return = (1 + portfolio_returns).prod() - 1
         annual_return = portfolio_returns.mean() * 12
         volatility = portfolio_returns.std() * np.sqrt(12)
-        
+
         # Risk-adjusted metrics
         sharpe_ratio = annual_return / volatility if volatility > 0 else 0
-        
+
         # Drawdown analysis
         cumulative = (1 + portfolio_returns).cumprod()
         running_max = cumulative.expanding().max()
         drawdown = (cumulative - running_max) / running_max
         max_drawdown = drawdown.min()
-        
+
+        # Drawdown duration
+        duration_metrics = self.calculate_drawdown_duration(portfolio_returns)
+
         # Additional metrics
         positive_months = (portfolio_returns > 0).sum()
         total_months = len(portfolio_returns)
         win_rate = positive_months / total_months
-        
+
         return {
             'total_return': total_return,
             'annual_return': annual_return,
@@ -208,7 +251,8 @@ class CorrectedPortfolioStrategy:
             'sharpe_ratio': sharpe_ratio,
             'max_drawdown': max_drawdown,
             'win_rate': win_rate,
-            'total_months': total_months
+            'total_months': total_months,
+            **duration_metrics
         }
     
     def run_parameter_analysis(self, force_refresh: bool = False) -> pd.DataFrame:
@@ -274,29 +318,36 @@ class CorrectedPortfolioStrategy:
         
         # Set up the plotting style
         plt.style.use('default')
-        fig = plt.figure(figsize=(20, 15))
-        
-        # 1. Parameter Heatmaps
-        ax1 = plt.subplot(3, 3, 1)
-        pivot_sharpe = results_df.pivot(index='lookback_period', 
-                                      columns='correlation_threshold', 
+        fig = plt.figure(figsize=(24, 18))
+
+        # 1. Parameter Heatmaps (2x2 grid for top row)
+        ax1 = plt.subplot(3, 4, 1)
+        pivot_sharpe = results_df.pivot(index='lookback_period',
+                                      columns='correlation_threshold',
                                       values='sharpe_ratio')
         sns.heatmap(pivot_sharpe, annot=True, fmt='.3f', cmap='RdYlGn', ax=ax1)
         ax1.set_title('Sharpe Ratio by Parameters')
-        
-        ax2 = plt.subplot(3, 3, 2)
-        pivot_dd = results_df.pivot(index='lookback_period', 
-                                   columns='correlation_threshold', 
+
+        ax2 = plt.subplot(3, 4, 2)
+        pivot_dd = results_df.pivot(index='lookback_period',
+                                   columns='correlation_threshold',
                                    values='max_drawdown')
         sns.heatmap(pivot_dd, annot=True, fmt='.3f', cmap='RdYlGn_r', ax=ax2)
         ax2.set_title('Max Drawdown by Parameters')
-        
-        ax3 = plt.subplot(3, 3, 3)
-        pivot_ret = results_df.pivot(index='lookback_period', 
-                                    columns='correlation_threshold', 
+
+        ax3 = plt.subplot(3, 4, 3)
+        pivot_ret = results_df.pivot(index='lookback_period',
+                                    columns='correlation_threshold',
                                     values='annual_return')
         sns.heatmap(pivot_ret, annot=True, fmt='.3f', cmap='RdYlGn', ax=ax3)
         ax3.set_title('Annual Return by Parameters')
+
+        ax4 = plt.subplot(3, 4, 4)
+        pivot_duration = results_df.pivot(index='lookback_period',
+                                         columns='correlation_threshold',
+                                         values='p95_duration')
+        sns.heatmap(pivot_duration, annot=True, fmt='.0f', cmap='RdYlGn_r', ax=ax4)
+        ax4.set_title('P95 Drawdown Duration (months)')
         
         # 2. Best Strategy Performance
         best_idx = results_df['sharpe_ratio'].idxmax()
@@ -316,59 +367,59 @@ class CorrectedPortfolioStrategy:
         portfolio_returns, cumulative_returns = self.backtest_strategy(self.data, filtered_weights)
         
         # Portfolio Performance
-        ax4 = plt.subplot(3, 3, 4)
-        cumulative_returns.plot(ax=ax4, linewidth=2)
-        ax4.set_title('Cumulative Returns - Best Strategy')
-        ax4.set_ylabel('Cumulative Return')
-        ax4.grid(True, alpha=0.3)
-        
-        # Drawdown
-        ax5 = plt.subplot(3, 3, 5)
-        running_max = cumulative_returns.expanding().max()
-        drawdown = (cumulative_returns - running_max) / running_max
-        drawdown.plot(ax=ax5, color='red', alpha=0.7)
-        ax5.fill_between(drawdown.index, drawdown, 0, alpha=0.3, color='red')
-        ax5.set_title('Drawdown Analysis')
-        ax5.set_ylabel('Drawdown %')
+        ax5 = plt.subplot(3, 4, 5)
+        cumulative_returns.plot(ax=ax5, linewidth=2)
+        ax5.set_title('Cumulative Returns - Best Strategy')
+        ax5.set_ylabel('Cumulative Return')
         ax5.grid(True, alpha=0.3)
         
-        # Individual Asset Performance
-        ax6 = plt.subplot(3, 3, 6)
-        asset_cumulative = (1 + monthly_returns).cumprod()
-        for column in asset_cumulative.columns:
-            asset_cumulative[column].plot(ax=ax6, label=column, alpha=0.8)
-        ax6.set_title('Individual Asset Performance')
-        ax6.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
+        # Drawdown
+        ax6 = plt.subplot(3, 4, 6)
+        running_max = cumulative_returns.expanding().max()
+        drawdown = (cumulative_returns - running_max) / running_max
+        drawdown.plot(ax=ax6, color='red', alpha=0.7)
+        ax6.fill_between(drawdown.index, drawdown, 0, alpha=0.3, color='red')
+        ax6.set_title('Drawdown Analysis')
+        ax6.set_ylabel('Drawdown %')
         ax6.grid(True, alpha=0.3)
         
-        # Weight Evolution
-        ax7 = plt.subplot(3, 3, 7)
-        weights_to_plot = filtered_weights.iloc[-252:] if len(filtered_weights) > 252 else filtered_weights
-        weights_to_plot.plot(ax=ax7, stacked=True)
-        ax7.set_title('Portfolio Weights Evolution (Last Year)')
-        ax7.set_ylabel('Weight')
+        # Individual Asset Performance
+        ax7 = plt.subplot(3, 4, 7)
+        asset_cumulative = (1 + monthly_returns).cumprod()
+        for column in asset_cumulative.columns:
+            asset_cumulative[column].plot(ax=ax7, label=column, alpha=0.8)
+        ax7.set_title('Individual Asset Performance')
         ax7.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
+        ax7.grid(True, alpha=0.3)
+        
+        # Weight Evolution
+        ax8 = plt.subplot(3, 4, 8)
+        weights_to_plot = filtered_weights.iloc[-252:] if len(filtered_weights) > 252 else filtered_weights
+        weights_to_plot.plot(ax=ax8, stacked=True)
+        ax8.set_title('Portfolio Weights Evolution (Last Year)')
+        ax8.set_ylabel('Weight')
+        ax8.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
         
         # Rolling Correlation
-        ax8 = plt.subplot(3, 3, 8)
+        ax9 = plt.subplot(3, 4, 9)
         correlation_data = self.calculate_correlation_matrix(
             monthly_returns, int(best_params['lookback_period'])
         )
-        correlation_data['avg_correlation'].plot(ax=ax8)
-        ax8.axhline(y=best_params['correlation_threshold'], color='red', 
+        correlation_data['avg_correlation'].plot(ax=ax9)
+        ax9.axhline(y=best_params['correlation_threshold'], color='red',
                    linestyle='--', label=f"Threshold: {best_params['correlation_threshold']}")
-        ax8.set_title('Average Portfolio Correlation')
-        ax8.legend()
-        ax8.grid(True, alpha=0.3)
-        
-        # Performance Distribution
-        ax9 = plt.subplot(3, 3, 9)
-        portfolio_returns.hist(bins=30, ax=ax9, alpha=0.7, edgecolor='black')
-        ax9.axvline(portfolio_returns.mean(), color='red', linestyle='--', 
-                   label=f'Mean: {portfolio_returns.mean():.3f}')
-        ax9.set_title('Monthly Returns Distribution')
+        ax9.set_title('Average Portfolio Correlation')
         ax9.legend()
         ax9.grid(True, alpha=0.3)
+        
+        # Performance Distribution
+        ax10 = plt.subplot(3, 4, 10)
+        portfolio_returns.hist(bins=30, ax=ax10, alpha=0.7, edgecolor='black')
+        ax10.axvline(portfolio_returns.mean(), color='red', linestyle='--',
+                   label=f'Mean: {portfolio_returns.mean():.3f}')
+        ax10.set_title('Monthly Returns Distribution')
+        ax10.legend()
+        ax10.grid(True, alpha=0.3)
         
         plt.tight_layout()
         plt.savefig('visualizations/corrected_portfolio_analysis.png', dpi=300, bbox_inches='tight')
@@ -414,6 +465,8 @@ class CorrectedPortfolioStrategy:
 - **Volatility**: {metrics['volatility']:.1%}
 - **Sharpe Ratio**: {metrics['sharpe_ratio']:.3f}
 - **Maximum Drawdown**: {metrics['max_drawdown']:.1%}
+- **Drawdown Duration (P95)**: {metrics['p95_duration']:.0f} months
+- **Max Drawdown Duration**: {metrics['max_duration']:.0f} months
 - **Win Rate**: {metrics['win_rate']:.1%}
 - **Total Months**: {metrics['total_months']}
 
