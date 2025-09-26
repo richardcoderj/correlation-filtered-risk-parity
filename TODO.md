@@ -1,13 +1,13 @@
 Utmärkt! Det här är fyra mycket välgenomtänkta förbättringar som kan betydligt förbättra din strategi:
 
-## **1. Inkludera momentum-fond** 🚀
+## **1. [ ] Inkludera momentum-fond** 🚀
 
 * **DMCRX** som ersättning för någon av dina nuvarande assets
 * Historik från 1996 → täcker finanskrisen 2008
 * Earnings momentum-strategi med stark akademisk backing
 * **Fråga:** Vilken tillgång skulle du ersätta? Kanske **VEIEX** (emerging markets) som presterat sämst?
 
-## **2. Total return med utdelningar** 💰
+## **2. [X] Total return med utdelningar** 💰
 
 **Kritiskt för korrekt backtesting!**
 
@@ -16,7 +16,7 @@ Utmärkt! Det här är fyra mycket välgenomtänkta förbättringar som kan bety
 * **VEIEX:** EM-fonder ofta 3-5% yield
 * **Utan utdelningar missar du stor del av avkastningen**
 
-## **3. Kortare lookback-perioder** ⏰
+## **3. [ ] Kortare lookback-perioder** ⏰
 
 **Mycket smart** - momentum kan variera i styrka:
 
