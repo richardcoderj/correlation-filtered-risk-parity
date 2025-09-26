@@ -43,10 +43,10 @@
 - Max Drawdown: -14.0%
 
 ### Worst Parameter Combination  
-- Lookback: 24.0 months
+- Lookback: 6.0 months
 - Correlation Threshold: 0.6
-- Sharpe Ratio: 0.692
-- Max Drawdown: -16.4%
+- Sharpe Ratio: 0.530
+- Max Drawdown: -30.0%
 
 ## Asset Analysis
 
@@ -118,5 +118,5 @@ The strategy shows robust performance across different market conditions:
 - **Data Sources**: EODHD API with yfinance backup
 
 ---
-*Report generated on 2025-09-26 23:08:31*
+*Report generated on 2025-09-26 23:18:37*
 *Analysis includes 237 months of data*

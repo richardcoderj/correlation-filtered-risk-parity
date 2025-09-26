@@ -24,6 +24,7 @@ import yfinance as yf
 from typing import Dict, List, Tuple, Optional
 import json
 import os
+from data_downloader import DataDownloader
 
 warnings.filterwarnings('ignore')
 plt.style.use('seaborn-v0_8')
@@ -36,120 +37,26 @@ pd.set_option('display.max_colwidth', None)
 
 class CorrectedPortfolioStrategy:
     def __init__(self):
-        # API Keys
-        self.eodhd_api_key = '647f18a6ead3f0.56528805'
-        
-        # Updated asset portfolio - one per category
-        self.assets = {
-            'VFITX': {'name': 'Vanguard Intermediate-Term Treasury Index Fund', 'category': 'Fixed Income', 'start_year': 1991},
-            'NEM': {'name': 'Newmont Corporation', 'category': 'Gold', 'start_year': 1940},
-            'XOM': {'name': 'ExxonMobil Corporation', 'category': 'Energy/Commodities', 'start_year': 1970},
-            'FSUTX': {'name': 'Fidelity Short-Term Treasury Bond Index Fund', 'category': 'Short-Term Treasury', 'start_year': 2003},
-            'SPHQ': {'name': 'Invesco S&P 500 Quality', 'category': 'Quality Factor', 'start_year': 2005}
-        }
-        
+        # Initialize data downloader
+        self.downloader = DataDownloader()
+
+        # Get assets from downloader
+        self.assets = self.downloader.assets
+
         # Strategy parameters
         self.lookback_periods = [6, 9, 12, 18, 24, 36]  # months for volatility calculation
-        self.correlation_thresholds = [0.3, 0.4, 0.5, 0.6]  # correlation limits
+        self.correlation_thresholds = [0.2, 0.3, 0.4, 0.5, 0.6]  # correlation limits
         self.rebalance_frequency = 'M'  # Monthly rebalancing
-        
+
         # Performance storage
         self.data = {}
         self.results = {}
         
-    def fetch_data_eodhd(self, symbol: str, start_date: str = '1990-01-01') -> pd.DataFrame:
-        """Fetch historical data from EODHD API"""
-        url = f"https://eodhd.com/api/eod/{symbol}.US"
-        params = {
-            'api_token': self.eodhd_api_key,
-            'from': start_date,
-            'period': 'd',
-            'fmt': 'json'
-        }
-        
-        try:
-            response = requests.get(url, params=params, timeout=30)
-            if response.status_code == 200:
-                data = response.json()
-                if data:
-                    df = pd.DataFrame(data)
-                    df['date'] = pd.to_datetime(df['date'])
-                    df.set_index('date', inplace=True)
-                    df = df[['adjusted_close']].rename(columns={'adjusted_close': symbol})
-                    return df
-        except Exception as e:
-            print(f"EODHD failed for {symbol}: {e}")
-        
-        return pd.DataFrame()
+    def load_data(self, force_refresh: bool = False) -> pd.DataFrame:
+        """Load data using the data downloader with caching"""
+        print("Loading historical data...")
+        return self.downloader.get_data(force_refresh=force_refresh)
     
-    def fetch_data_yfinance(self, symbol: str, start_date: str = '1990-01-01') -> pd.DataFrame:
-        """Fallback: fetch data from yfinance"""
-        try:
-            ticker = yf.Ticker(symbol)
-            df = ticker.history(start=start_date, end=datetime.now().strftime('%Y-%m-%d'))
-            if not df.empty:
-                # Use Adj Close for total returns (includes dividends and splits)
-                df = df[['Adj Close']].rename(columns={'Adj Close': symbol})
-                return df
-        except Exception as e:
-            print(f"yfinance failed for {symbol}: {e}")
-
-        return pd.DataFrame()
-    
-    def fetch_all_data(self) -> Dict[str, pd.DataFrame]:
-        """Fetch historical data for all assets"""
-        print("Fetching historical data for all assets...")
-        all_data = {}
-        
-        for symbol, info in self.assets.items():
-            print(f"Fetching data for {symbol} ({info['name']})...")
-            
-            # Try to get data from the asset's start year
-            start_date = f"{info['start_year']}-01-01"
-            
-            # Try EODHD first
-            df = self.fetch_data_eodhd(symbol, start_date)
-            
-            # Fallback to yfinance
-            if df.empty:
-                df = self.fetch_data_yfinance(symbol, start_date)
-            
-            if not df.empty:
-                print(f"OK {symbol}: {len(df)} data points from {df.index.min().date()} to {df.index.max().date()}")
-                all_data[symbol] = df
-            else:
-                print(f"FAILED to fetch data for {symbol}")
-        
-        return all_data
-    
-    def combine_data(self, data_dict: Dict[str, pd.DataFrame]) -> pd.DataFrame:
-        """Combine all asset data into single DataFrame"""
-        if not data_dict:
-            return pd.DataFrame()
-        
-        # Find common date range
-        start_dates = [df.index.min() for df in data_dict.values()]
-        end_dates = [df.index.max() for df in data_dict.values()]
-        
-        common_start = max(start_dates)
-        common_end = min(end_dates)
-        
-        print(f"Common data period: {common_start.date()} to {common_end.date()}")
-
-        # Combine data
-        combined_df = pd.DataFrame()
-        for symbol, df in data_dict.items():
-            df_filtered = df[(df.index >= common_start) & (df.index <= common_end)]
-            if combined_df.empty:
-                combined_df = df_filtered.copy()
-            else:
-                combined_df = combined_df.join(df_filtered, how='inner')
-
-        # Fill missing values
-        combined_df = combined_df.fillna(method='ffill').dropna()
-
-        print(f"Final dataset: {len(combined_df)} rows, {len(combined_df.columns)} assets")
-        return combined_df
     
     def calculate_returns(self, data: pd.DataFrame) -> pd.DataFrame:
         """Calculate daily and monthly returns"""
@@ -304,14 +211,13 @@ class CorrectedPortfolioStrategy:
             'total_months': total_months
         }
     
-    def run_parameter_analysis(self) -> pd.DataFrame:
+    def run_parameter_analysis(self, force_refresh: bool = False) -> pd.DataFrame:
         """Run analysis across different parameter combinations"""
         print("Running parameter analysis...")
-        
-        # Fetch data
-        raw_data = self.fetch_all_data()
-        self.data = self.combine_data(raw_data)
-        
+
+        # Load data using cached approach
+        self.data = self.load_data(force_refresh=force_refresh)
+
         if self.data.empty:
             print("ERROR: No data available for analysis")
             return pd.DataFrame()
@@ -620,33 +526,41 @@ The strategy shows robust performance across different market conditions:
 
 def main():
     """Run the corrected portfolio analysis"""
+    import argparse
+
+    parser = argparse.ArgumentParser(description='Run portfolio strategy analysis')
+    parser.add_argument('--force-refresh', action='store_true',
+                       help='Force refresh all data (ignore cache)')
+
+    args = parser.parse_args()
+
     # Change to project root directory if running from src/
     if os.path.basename(os.getcwd()) == 'src':
         os.chdir('..')
 
     print("Starting Corrected Portfolio Strategy Analysis")
     print("=" * 60)
-    
+
     strategy = CorrectedPortfolioStrategy()
-    
+
     try:
         # Run parameter analysis
-        results_df = strategy.run_parameter_analysis()
-        
+        results_df = strategy.run_parameter_analysis(force_refresh=args.force_refresh)
+
         if not results_df.empty:
             # Create visualizations and get best strategy details
             best_params, portfolio_returns, cumulative_returns, weights = strategy.create_visualizations(results_df)
-            
+
             # Generate comprehensive report
             strategy.generate_report(results_df, best_params, portfolio_returns, weights)
-            
+
             print("Analysis completed successfully!")
             print(f"Best Sharpe Ratio: {results_df['sharpe_ratio'].max():.3f}")
             print(f"Best Annual Return: {results_df['annual_return'].max():.1%}")
             print(f"Best Max Drawdown: {results_df['max_drawdown'].max():.1%}")
         else:
             print("No results generated")
-            
+
     except Exception as e:
         print(f"ERROR in analysis: {e}")
         import traceback
