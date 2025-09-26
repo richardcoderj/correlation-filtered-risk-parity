@@ -88,11 +88,12 @@ class CorrectedPortfolioStrategy:
             ticker = yf.Ticker(symbol)
             df = ticker.history(start=start_date, end=datetime.now().strftime('%Y-%m-%d'))
             if not df.empty:
-                df = df[['Close']].rename(columns={'Close': symbol})
+                # Use Adj Close for total returns (includes dividends and splits)
+                df = df[['Adj Close']].rename(columns={'Adj Close': symbol})
                 return df
         except Exception as e:
             print(f"yfinance failed for {symbol}: {e}")
-        
+
         return pd.DataFrame()
     
     def fetch_all_data(self) -> Dict[str, pd.DataFrame]:
