@@ -4,10 +4,10 @@ Corrected Portfolio Strategy - One Asset Per Category
 Focus on diversification with return-weighted allocation
 
 Assets:
-- FGOVX: Fidelity Government Income Fund (1979) - Fixed Income
+- VFITX: Vanguard Intermediate-Term Treasury Index Fund (1991) - Fixed Income
 - NEM: Newmont (1940s) - Gold
-- XOM: ExxonMobil (1970s) - Energy/Commodities  
-- VEIEX: Vanguard Emerging Markets (1994) - Emerging Markets
+- XOM: ExxonMobil (1970s) - Energy/Commodities
+- FSUTX: Fidelity Short-Term Treasury Bond Index Fund (2003) - Short-Term Treasury
 - SPHQ: Quality Factor
 
 Strategy: Risk Parity with return-weighted allocation, monthly rebalancing
@@ -41,10 +41,10 @@ class CorrectedPortfolioStrategy:
         
         # Updated asset portfolio - one per category
         self.assets = {
-            'FGOVX': {'name': 'Fidelity Government Income Fund', 'category': 'Fixed Income', 'start_year': 1979},
+            'VFITX': {'name': 'Vanguard Intermediate-Term Treasury Index Fund', 'category': 'Fixed Income', 'start_year': 1991},
             'NEM': {'name': 'Newmont Corporation', 'category': 'Gold', 'start_year': 1940},
             'XOM': {'name': 'ExxonMobil Corporation', 'category': 'Energy/Commodities', 'start_year': 1970},
-            'VEIEX': {'name': 'Vanguard Emerging Markets', 'category': 'Emerging Markets', 'start_year': 1994},
+            'FSUTX': {'name': 'Fidelity Short-Term Treasury Bond Index Fund', 'category': 'Short-Term Treasury', 'start_year': 2003},
             'SPHQ': {'name': 'Invesco S&P 500 Quality', 'category': 'Quality Factor', 'start_year': 2005}
         }
         
