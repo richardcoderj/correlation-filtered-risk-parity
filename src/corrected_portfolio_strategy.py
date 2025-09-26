@@ -97,7 +97,7 @@ class CorrectedPortfolioStrategy:
     
     def fetch_all_data(self) -> Dict[str, pd.DataFrame]:
         """Fetch historical data for all assets"""
-        print("🔄 Fetching historical data for all assets...")
+        print("Fetching historical data for all assets...")
         all_data = {}
         
         for symbol, info in self.assets.items():
@@ -114,10 +114,10 @@ class CorrectedPortfolioStrategy:
                 df = self.fetch_data_yfinance(symbol, start_date)
             
             if not df.empty:
-                print(f"✅ {symbol}: {len(df)} data points from {df.index.min().date()} to {df.index.max().date()}")
+                print(f"OK {symbol}: {len(df)} data points from {df.index.min().date()} to {df.index.max().date()}")
                 all_data[symbol] = df
             else:
-                print(f"❌ Failed to fetch data for {symbol}")
+                print(f"FAILED to fetch data for {symbol}")
         
         return all_data
     
@@ -133,8 +133,8 @@ class CorrectedPortfolioStrategy:
         common_start = max(start_dates)
         common_end = min(end_dates)
         
-        print(f"📊 Common data period: {common_start.date()} to {common_end.date()}")
-        
+        print(f"Common data period: {common_start.date()} to {common_end.date()}")
+
         # Combine data
         combined_df = pd.DataFrame()
         for symbol, df in data_dict.items():
@@ -143,11 +143,11 @@ class CorrectedPortfolioStrategy:
                 combined_df = df_filtered.copy()
             else:
                 combined_df = combined_df.join(df_filtered, how='inner')
-        
+
         # Fill missing values
         combined_df = combined_df.fillna(method='ffill').dropna()
-        
-        print(f"📈 Final dataset: {len(combined_df)} rows, {len(combined_df.columns)} assets")
+
+        print(f"Final dataset: {len(combined_df)} rows, {len(combined_df.columns)} assets")
         return combined_df
     
     def calculate_returns(self, data: pd.DataFrame) -> pd.DataFrame:
@@ -305,14 +305,14 @@ class CorrectedPortfolioStrategy:
     
     def run_parameter_analysis(self) -> pd.DataFrame:
         """Run analysis across different parameter combinations"""
-        print("🔄 Running parameter analysis...")
+        print("Running parameter analysis...")
         
         # Fetch data
         raw_data = self.fetch_all_data()
         self.data = self.combine_data(raw_data)
         
         if self.data.empty:
-            print("❌ No data available for analysis")
+            print("ERROR: No data available for analysis")
             return pd.DataFrame()
         
         daily_returns, monthly_returns = self.calculate_returns(self.data)
@@ -347,10 +347,10 @@ class CorrectedPortfolioStrategy:
                     }
                     results.append(result)
                     
-                    print(f"✅ Sharpe: {metrics['sharpe_ratio']:.3f}, Max DD: {metrics['max_drawdown']:.3f}")
-                    
+                    print(f"OK Sharpe: {metrics['sharpe_ratio']:.3f}, Max DD: {metrics['max_drawdown']:.3f}")
+
                 except Exception as e:
-                    print(f"❌ Error with parameters: {e}")
+                    print(f"ERROR with parameters: {e}")
         
         results_df = pd.DataFrame(results)
         return results_df
@@ -363,7 +363,7 @@ class CorrectedPortfolioStrategy:
         # Ensure visualizations directory exists
         os.makedirs('visualizations', exist_ok=True)
 
-        print("📊 Creating visualizations...")
+        print("Creating visualizations...")
         
         # Set up the plotting style
         plt.style.use('default')
@@ -465,14 +465,14 @@ class CorrectedPortfolioStrategy:
         
         plt.tight_layout()
         plt.savefig('visualizations/corrected_portfolio_analysis.png', dpi=300, bbox_inches='tight')
-        print("✅ Visualization saved: visualizations/corrected_portfolio_analysis.png")
+        print("Visualization saved: visualizations/corrected_portfolio_analysis.png")
         
         return best_params, portfolio_returns, cumulative_returns, filtered_weights
     
     def generate_report(self, results_df: pd.DataFrame, best_params: Dict, 
                        portfolio_returns: pd.Series, weights: pd.DataFrame):
         """Generate comprehensive analysis report"""
-        print("📝 Generating report...")
+        print("Generating report...")
         
         # Calculate detailed metrics
         metrics = self.calculate_performance_metrics(portfolio_returns)
@@ -605,7 +605,7 @@ The strategy shows robust performance across different market conditions:
         with open('reports/corrected_strategy_report.md', 'w') as f:
             f.write(report)
 
-        print("✅ Report saved: reports/corrected_strategy_report.md")
+        print("Report saved: reports/corrected_strategy_report.md")
         
         # Ensure data directory exists
         os.makedirs('data', exist_ok=True)
@@ -615,11 +615,15 @@ The strategy shows robust performance across different market conditions:
         weights.to_csv('data/corrected_portfolio_weights.csv')
         portfolio_returns.to_csv('data/corrected_portfolio_returns.csv')
         
-        print("✅ All analysis files saved")
+        print("All analysis files saved")
 
 def main():
     """Run the corrected portfolio analysis"""
-    print("🚀 Starting Corrected Portfolio Strategy Analysis")
+    # Change to project root directory if running from src/
+    if os.path.basename(os.getcwd()) == 'src':
+        os.chdir('..')
+
+    print("Starting Corrected Portfolio Strategy Analysis")
     print("=" * 60)
     
     strategy = CorrectedPortfolioStrategy()
@@ -635,15 +639,15 @@ def main():
             # Generate comprehensive report
             strategy.generate_report(results_df, best_params, portfolio_returns, weights)
             
-            print("✅ Analysis completed successfully!")
-            print(f"🏆 Best Sharpe Ratio: {results_df['sharpe_ratio'].max():.3f}")
-            print(f"📈 Best Annual Return: {results_df['annual_return'].max():.1%}")
-            print(f"📉 Best Max Drawdown: {results_df['max_drawdown'].max():.1%}")
+            print("Analysis completed successfully!")
+            print(f"Best Sharpe Ratio: {results_df['sharpe_ratio'].max():.3f}")
+            print(f"Best Annual Return: {results_df['annual_return'].max():.1%}")
+            print(f"Best Max Drawdown: {results_df['max_drawdown'].max():.1%}")
         else:
-            print("❌ No results generated")
+            print("No results generated")
             
     except Exception as e:
-        print(f"❌ Error in analysis: {e}")
+        print(f"ERROR in analysis: {e}")
         import traceback
         traceback.print_exc()
 
