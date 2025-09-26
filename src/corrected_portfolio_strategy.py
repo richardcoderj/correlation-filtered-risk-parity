@@ -359,7 +359,10 @@ class CorrectedPortfolioStrategy:
         """Create comprehensive visualizations"""
         if results_df.empty:
             return
-        
+
+        # Ensure visualizations directory exists
+        os.makedirs('visualizations', exist_ok=True)
+
         print("📊 Creating visualizations...")
         
         # Set up the plotting style
@@ -461,8 +464,8 @@ class CorrectedPortfolioStrategy:
         ax9.grid(True, alpha=0.3)
         
         plt.tight_layout()
-        plt.savefig('/home/ubuntu/corrected_portfolio_analysis.png', dpi=300, bbox_inches='tight')
-        print("✅ Visualization saved: corrected_portfolio_analysis.png")
+        plt.savefig('visualizations/corrected_portfolio_analysis.png', dpi=300, bbox_inches='tight')
+        print("✅ Visualization saved: visualizations/corrected_portfolio_analysis.png")
         
         return best_params, portfolio_returns, cumulative_returns, filtered_weights
     
@@ -595,16 +598,22 @@ The strategy shows robust performance across different market conditions:
 *Analysis includes {metrics['total_months']} months of data*
 """
         
+        # Ensure reports directory exists
+        os.makedirs('reports', exist_ok=True)
+
         # Save report
-        with open('/home/ubuntu/corrected_strategy_report.md', 'w') as f:
+        with open('reports/corrected_strategy_report.md', 'w') as f:
             f.write(report)
+
+        print("✅ Report saved: reports/corrected_strategy_report.md")
         
-        print("✅ Report saved: corrected_strategy_report.md")
-        
+        # Ensure data directory exists
+        os.makedirs('data', exist_ok=True)
+
         # Save detailed results
-        results_df.to_csv('/home/ubuntu/corrected_parameter_results.csv', index=False)
-        weights.to_csv('/home/ubuntu/corrected_portfolio_weights.csv')
-        portfolio_returns.to_csv('/home/ubuntu/corrected_portfolio_returns.csv')
+        results_df.to_csv('data/corrected_parameter_results.csv', index=False)
+        weights.to_csv('data/corrected_portfolio_weights.csv')
+        portfolio_returns.to_csv('data/corrected_portfolio_returns.csv')
         
         print("✅ All analysis files saved")
 
