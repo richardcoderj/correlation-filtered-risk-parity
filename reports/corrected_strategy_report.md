@@ -118,5 +118,5 @@ The strategy shows robust performance across different market conditions:
 - **Data Sources**: EODHD API with yfinance backup
 
 ---
-*Report generated on 2025-09-26 19:32:57*
+*Report generated on 2025-09-26 22:41:13*
 *Analysis includes 237 months of data*
