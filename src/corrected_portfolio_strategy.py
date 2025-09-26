@@ -49,7 +49,7 @@ class CorrectedPortfolioStrategy:
         }
         
         # Strategy parameters
-        self.lookback_periods = [12, 18, 24, 36]  # months for volatility calculation
+        self.lookback_periods = [6, 9, 12, 18, 24, 36]  # months for volatility calculation
         self.correlation_thresholds = [0.3, 0.4, 0.5, 0.6]  # correlation limits
         self.rebalance_frequency = 'M'  # Monthly rebalancing
         
