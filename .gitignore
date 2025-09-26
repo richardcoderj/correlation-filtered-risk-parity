@@ -51,3 +51,5 @@ Thumbs.db
 *.png
 *.html
 *.pdf
+
+.venv/
