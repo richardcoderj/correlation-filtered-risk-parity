@@ -7,26 +7,26 @@
 **Analysis Period**: 2005-12-06 to 2025-09-25
 
 ## Asset Universe (5 Assets - One Per Category)
-- **VFITX** (Fixed Income): Vanguard Intermediate-Term Treasury Index Fund - Weight: 17.9%
-- **NEM** (Gold): Newmont Corporation - Weight: 29.2%
-- **XOM** (Energy/Commodities): ExxonMobil Corporation - Weight: 2.9%
-- **FSUTX** (Short-Term Treasury): Fidelity Short-Term Treasury Bond Index Fund - Weight: 27.5%
-- **SPHQ** (Quality Factor): Invesco S&P 500 Quality - Weight: 22.5%
+- **VFITX** (Fixed Income): Vanguard Intermediate-Term Treasury Index Fund - Weight: 18.9%
+- **NEM** (Gold): Newmont Corporation - Weight: 63.3%
+- **XOM** (Energy/Commodities): ExxonMobil Corporation - Weight: 1.2%
+- **FSUTX** (Short-Term Treasury): Fidelity Short-Term Treasury Bond Index Fund - Weight: 3.5%
+- **SPHQ** (Quality Factor): Invesco S&P 500 Quality - Weight: 13.1%
 
 ## Optimal Strategy Parameters
-- **Lookback Period**: 12.0 months
-- **Correlation Threshold**: 0.6
+- **Lookback Period**: 9.0 months
+- **Correlation Threshold**: 0.2
 - **Strategy Focus**: Higher weights for higher expected return assets
 
 ## Performance Metrics
-- **Total Return**: 459.4%
-- **Annualized Return**: 9.4%
-- **Volatility**: 11.3%
-- **Sharpe Ratio**: 0.832
-- **Maximum Drawdown**: -14.0%
+- **Total Return**: 476.8%
+- **Annualized Return**: 9.6%
+- **Volatility**: 11.7%
+- **Sharpe Ratio**: 0.821
+- **Maximum Drawdown**: -18.6%
 - **Drawdown Duration (P95)**: 15 months
-- **Max Drawdown Duration**: 24 months
-- **Win Rate**: 59.5%
+- **Max Drawdown Duration**: 27 months
+- **Win Rate**: 56.1%
 - **Total Months**: 237
 
 ## Strategy Strengths
@@ -39,16 +39,16 @@
 ## Parameter Sensitivity Analysis
 
 ### Best Parameter Combination
-- Lookback: 12.0 months
-- Correlation Threshold: 0.6
-- Sharpe Ratio: 0.832
-- Max Drawdown: -14.0%
+- Lookback: 9.0 months
+- Correlation Threshold: 0.2
+- Sharpe Ratio: 0.821
+- Max Drawdown: -18.6%
 
 ### Worst Parameter Combination  
 - Lookback: 6.0 months
-- Correlation Threshold: 0.6
-- Sharpe Ratio: 0.530
-- Max Drawdown: -30.0%
+- Correlation Threshold: 0.5
+- Sharpe Ratio: 0.550
+- Max Drawdown: -25.0%
 
 ## Asset Analysis
 
@@ -57,40 +57,40 @@
 - Annual Return: 3.2%
 - Volatility: 4.6%
 - Sharpe Ratio: 0.693
-- Final Weight: 17.9%
+- Final Weight: 18.9%
 
 ### NEM (Newmont Corporation)
 - Total Return: 129.2%
 - Annual Return: 10.7%
 - Volatility: 36.3%
 - Sharpe Ratio: 0.295
-- Final Weight: 29.2%
+- Final Weight: 63.3%
 
 ### XOM (ExxonMobil Corporation)
 - Total Return: 302.8%
 - Annual Return: 9.6%
 - Volatility: 22.7%
 - Sharpe Ratio: 0.424
-- Final Weight: 2.9%
+- Final Weight: 1.2%
 
 ### FSUTX (Fidelity Short-Term Treasury Bond Index Fund)
 - Total Return: 538.7%
 - Annual Return: 10.5%
 - Volatility: 14.6%
 - Sharpe Ratio: 0.718
-- Final Weight: 27.5%
+- Final Weight: 3.5%
 
 ### SPHQ (Invesco S&P 500 Quality)
 - Total Return: 517.2%
 - Annual Return: 10.5%
 - Volatility: 15.4%
 - Sharpe Ratio: 0.680
-- Final Weight: 22.5%
+- Final Weight: 13.1%
 
 ## Risk Analysis
-- **Correlation Management**: Active monitoring and reduction of correlations > 0.6
+- **Correlation Management**: Active monitoring and reduction of correlations > 0.2
 - **Volatility Targeting**: Risk parity approach balances volatility contribution
-- **Drawdown Control**: Maximum drawdown of -14.0% indicates good downside protection
+- **Drawdown Control**: Maximum drawdown of -18.6% indicates good downside protection
 
 ## Implementation Recommendations
 1. **Monthly Rebalancing**: Stick to monthly frequency to balance costs and performance
@@ -120,5 +120,5 @@ The strategy shows robust performance across different market conditions:
 - **Data Sources**: EODHD API with yfinance backup
 
 ---
-*Report generated on 2025-09-26 23:38:42*
+*Report generated on 2025-09-27 10:12:42*
 *Analysis includes 237 months of data*

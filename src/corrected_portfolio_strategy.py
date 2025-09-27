@@ -166,18 +166,22 @@ class CorrectedPortfolioStrategy:
         return filtered_weights
     
     def backtest_strategy(self, data: pd.DataFrame, weights: pd.DataFrame) -> pd.DataFrame:
-        """Backtest the portfolio strategy"""
+        """Backtest the portfolio strategy with correct timing (no lookahead bias)"""
         daily_returns, monthly_returns = self.calculate_returns(data)
-        
-        # Align weights with monthly returns
-        aligned_weights = weights.reindex(monthly_returns.index).fillna(method='ffill')
-        
-        # Calculate portfolio returns
+
+        # CRITICAL FIX: Apply weights with 1-period lag to avoid lookahead bias
+        # Weights calculated at end of month t are applied to returns of month t+1
+        lagged_weights = weights.shift(1).dropna()
+
+        # Align lagged weights with monthly returns
+        aligned_weights = lagged_weights.reindex(monthly_returns.index).fillna(method='ffill')
+
+        # Calculate portfolio returns using previous period weights (realistic timing)
         portfolio_returns = (monthly_returns * aligned_weights).sum(axis=1)
-        
+
         # Calculate cumulative returns
         cumulative_returns = (1 + portfolio_returns).cumprod()
-        
+
         return portfolio_returns, cumulative_returns
     
     def calculate_drawdown_duration(self, portfolio_returns: pd.Series) -> Dict:
